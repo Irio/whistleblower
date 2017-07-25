@@ -2,6 +2,8 @@
 
 [![Code Health](https://landscape.io/github/datasciencebr/whistleblower/master/landscape.svg?style=flat)](https://landscape.io/github/datasciencebr/whistleblower/master)
 
+[![Coverage Status](https://coveralls.io/repos/github/gusttavoaguiarr/whistleblower/badge.svg?branch=master)](https://coveralls.io/github/gusttavoaguiarr/whistleblower?branch=master)
+
 # Whistleblower
 
 Follow [@RosieDaSerenata](https://twitter.com/RosieDaSerenata) to get Brazilian Chamber of Deputies' updates in your timeline.
