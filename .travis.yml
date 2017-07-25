@@ -10,6 +10,6 @@ env:
     - TWITTER_CONSUMER_KEY=YOUR_CONSUMER_KEY
     - TWITTER_CONSUMER_SECRET=YOUR_CONSUMER_SECRET
 script:
-  - coverage run -m unittest discover tests
+  coverage run -m unittest discover tests
 after_success:
-  - coveralls
+  coveralls
