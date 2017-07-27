@@ -2,6 +2,7 @@ language: python
 python: 3.6
 install:
   - pip install -r requirements.txt
+  - pip install coveralls
 env:
   global:
     - TWITTER_ACCESS_TOKEN_KEY=YOUR_ACCESS_TOKEN_KEY
@@ -9,5 +10,5 @@ env:
     - TWITTER_CONSUMER_KEY=YOUR_CONSUMER_KEY
     - TWITTER_CONSUMER_SECRET=YOUR_CONSUMER_SECRET
 
-script:
-  - python -m unittest discover tests
+script: coverage run -m unittest discover tests
+after_success: coveralls
