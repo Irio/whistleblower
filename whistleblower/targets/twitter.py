@@ -164,6 +164,21 @@ class Post:
         )
         return message
 
+    def camara_image_url(self):
+        """
+        Proper image url for the given reimbursement.
+        """
+        url = (
+            'https://camara.gov.br/cota-parlamentar/documentos/publ/'
+            '{}/{}/{}.pdf'.format(
+                self.reimbursement['applicant_id'],
+                self.reimbursement['year'],
+                self.reimbursement['document_id'])
+        )
+
+        return url
+
+
     def publish(self):
         """
         Post the update to Twitter's timeline.

@@ -108,6 +108,8 @@ class TestPost(TestCase):
         self.reimbursement = {
             'congressperson_name': 'Eduardo Cunha',
             'document_id': 10,
+            'applicant_id': 10,
+            'year': 2015,
             'state': 'RJ',
             'twitter_profile': 'DepEduardoCunha',
         }
@@ -143,3 +145,6 @@ class TestPost(TestCase):
         )
         self.assertEqual(message, self.subject.tweet_text())
 
+    def test_camara_image_url(self):
+        url = 'https://camara.gov.br/cota-parlamentar/documentos/publ/10/2015/10.pdf'
+        self.assertEqual(url, self.subject.camara_image_url())
