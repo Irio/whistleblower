@@ -117,19 +117,29 @@ class TestPost(TestCase):
 
     def test_publish(self):
         self.subject.publish()
-        self.api.PostUpdate.assert_called_once_with(self.subject.text())
+        self.api.PostUpdate.assert_called_once_with(self.subject.tweet_data())
         dict_representation = dict(self.subject)
         self.database.posts.insert_one.assert_called_once_with(
             dict_representation)
 
-    def test_text(self):
+    def test_tweet_data(self):
         message = (
             '🚨Gasto suspeito de Dep. @DepEduardoCunha (RJ). '
             'Você pode me ajudar a verificar? '
             'https://jarbas.serenata.ai/layers/#/documentId/10 '
             '#SerenataDeAmor na @CamaraDeputados'
         )
-        self.assertEqual(message, self.subject.text())
+        self.assertEqual(message, self.subject.tweet_data())
         self.reimbursement['twitter_profile'] = None
         with self.assertRaises(ValueError):
-            self.subject.text()
+            self.subject.tweet_data()
+
+    def test_tweet_text(self):
+        message = (
+            '🚨Gasto suspeito de Dep. @DepEduardoCunha (RJ). '
+            'Você pode me ajudar a verificar? '
+            'https://jarbas.serenata.ai/layers/#/documentId/10 '
+            '#SerenataDeAmor na @CamaraDeputados'
+        )
+        self.assertEqual(message, self.subject.tweet_text())
+

@@ -138,27 +138,35 @@ class Post:
         yield 'text', self.status.text
         yield 'document_id', self.reimbursement['document_id']
 
-    def text(self):
+    def tweet_data(self):
         """
-        Proper tweet message for the given reimbursement.
+        Proper tweet data for the given reimbursement.
         """
         profile = self.reimbursement['twitter_profile']
         if profile:
-            link = 'https://jarbas.serenata.ai/layers/#/documentId/{}'.format(
-                self.reimbursement['document_id'])
-            message = (
-                '🚨Gasto suspeito de Dep. @{} ({}). '
-                'Você pode me ajudar a verificar? '
-                '{} #SerenataDeAmor na @CamaraDeputados'
-            ).format(profile, self.reimbursement['state'], link)
-            return message
+            return self.tweet_text()
         else:
             raise ValueError(
                 'Congressperson does not have a registered Twitter account.')
+
+
+    def tweet_text(self):
+        link = 'https://jarbas.serenata.ai/layers/#/documentId/{}'.format(
+            self.reimbursement['document_id'])
+        message = (
+            '🚨Gasto suspeito de Dep. @{} ({}). '
+            'Você pode me ajudar a verificar? '
+            '{} #SerenataDeAmor na @CamaraDeputados'
+        ).format(
+            self.reimbursement['twitter_profile'],
+            self.reimbursement['state'],
+            link
+        )
+        return message
 
     def publish(self):
         """
         Post the update to Twitter's timeline.
         """
-        self.status = self.api.PostUpdate(self.text())
+        self.status = self.api.PostUpdate(self.tweet_data())
         self.database.posts.insert_one(dict(self))
