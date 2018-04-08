@@ -188,8 +188,7 @@ class Post:
         try:
             response = urllib.request.urlopen(self.camara_image_url())
 
-            image = Image(file=response)
-            image_bin = image.make_blob('png')
+            image_bin = Image(file=response).make_blob('png')
             numpy_array = np.frombuffer(image_bin, np.uint8)
 
             with NamedTemporaryFile(suffix='.png') as temp:
