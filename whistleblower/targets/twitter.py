@@ -144,7 +144,7 @@ class Post:
         """
         profile = self.reimbursement['twitter_profile']
         if profile:
-            return self.tweet_text()
+            return self.tweet_text(), self.tweet_image()
         else:
             raise ValueError(
                 'Congressperson does not have a registered Twitter account.')

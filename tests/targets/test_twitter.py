@@ -119,7 +119,9 @@ class TestPost(TestCase):
 
     def test_publish(self):
         self.subject.publish()
-        self.api.PostUpdate.assert_called_once_with(self.subject.tweet_data())
+        text, reimbursement_image = self.subject.tweet_data()
+        self.api.PostUpdate.assert_called_once_with(
+            media=reimbursement_image, status=text)
         dict_representation = dict(self.subject)
         self.database.posts.insert_one.assert_called_once_with(
             dict_representation)
