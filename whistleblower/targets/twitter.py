@@ -3,13 +3,16 @@ import logging
 import os
 import re
 import urllib.request
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pandas as pd
 from pymongo import MongoClient
 import twitter
+from wand.image import Image
 
 from whistleblower.suspicions import Suspicions
+from whistleblower.helpers.crop import crop
 
 ACCESS_TOKEN_KEY = os.environ['TWITTER_ACCESS_TOKEN_KEY']
 ACCESS_TOKEN_SECRET = os.environ['TWITTER_ACCESS_TOKEN_SECRET']
@@ -178,6 +181,26 @@ class Post:
 
         return url
 
+    def tweet_image(self):
+        """
+        Download, crop and open the image for the given reimbursement.
+        """
+        try:
+            response = urllib.request.urlopen(self.camara_image_url())
+
+            image = Image(file=response)
+            image_bin = image.make_blob('png')
+            numpy_array = np.frombuffer(image_bin, np.uint8)
+
+            with NamedTemporaryFile(suffix='.png') as temp:
+                crop(numpy_array, temp.name)
+
+                with open(temp.name, 'rb') as cropped_file:
+                    cropped_image = cropped_file
+        except:
+            return None
+
+        return cropped_image
 
     def publish(self):
         """

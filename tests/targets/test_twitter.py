@@ -1,5 +1,6 @@
 import datetime
 from unittest import TestCase, mock
+from io import BytesIO, BufferedReader
 
 import pandas as pd
 from twitter import TwitterError
@@ -150,3 +151,15 @@ class TestPost(TestCase):
     def test_camara_image_url(self):
         url = 'http://www.camara.gov.br/cota-parlamentar/documentos/publ/10/2015/10.pdf'
         self.assertEqual(url, self.subject.camara_image_url())
+
+    @mock.patch('whistleblower.targets.twitter.urllib.request.urlopen')
+    def test_tweet_image(self, urlopen_mock):
+        with open('tests/fixtures/10.pdf', 'rb') as pdf_fixture:
+            mock_response = pdf_fixture
+            mock_response_read = BytesIO(pdf_fixture.read())
+        urlopen_mock.return_value = mock_response_read
+        self.assertIsInstance(
+            self.subject.tweet_image(), BufferedReader)
+
+        urlopen_mock.side_effect = Exception()
+        self.assertIsNone(self.subject.tweet_image())
