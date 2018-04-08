@@ -1,6 +1,7 @@
 amqp==2.2.2
 celery==4.1.0
 ipdb==0.10.3
+opencv-python==3.4.0.12
 pandas==0.21.0
 pymongo==3.5.1
 python-twitter==3.3
