@@ -146,5 +146,5 @@ class TestPost(TestCase):
         self.assertEqual(message, self.subject.tweet_text())
 
     def test_camara_image_url(self):
-        url = 'https://camara.gov.br/cota-parlamentar/documentos/publ/10/2015/10.pdf'
+        url = 'http://www.camara.gov.br/cota-parlamentar/documentos/publ/10/2015/10.pdf'
         self.assertEqual(url, self.subject.camara_image_url())

@@ -169,7 +169,7 @@ class Post:
         Proper image url for the given reimbursement.
         """
         url = (
-            'https://camara.gov.br/cota-parlamentar/documentos/publ/'
+            'http://www.camara.gov.br/cota-parlamentar/documentos/publ/'
             '{}/{}/{}.pdf'.format(
                 self.reimbursement['applicant_id'],
                 self.reimbursement['year'],
