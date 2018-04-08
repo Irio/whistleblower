@@ -206,5 +206,9 @@ class Post:
         """
         Post the update to Twitter's timeline.
         """
-        self.status = self.api.PostUpdate(self.tweet_data())
+        text, reimbursement_image = self.tweet_data()
+
+        self.status = self.api.PostUpdate(
+            status=text,
+            media=reimbursement_image)
         self.database.posts.insert_one(dict(self))

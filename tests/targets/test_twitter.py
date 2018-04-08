@@ -134,7 +134,9 @@ class TestPost(TestCase):
             'https://jarbas.serenata.ai/layers/#/documentId/10 '
             '#SerenataDeAmor na @CamaraDeputados'
         )
-        self.assertEqual(message, self.subject.tweet_data())
+        reimbursement_image = None
+        self.assertEqual(
+            (message, None), self.subject.tweet_data())
         self.reimbursement['twitter_profile'] = None
         with self.assertRaises(ValueError):
             self.subject.tweet_data()
