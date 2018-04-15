@@ -1,6 +1,6 @@
 import datetime
-from unittest import TestCase, mock
 from io import BytesIO, BufferedReader
+from unittest import TestCase, mock
 
 import pandas as pd
 from twitter import TwitterError
