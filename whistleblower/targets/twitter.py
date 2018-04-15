@@ -2,8 +2,9 @@ import datetime
 import logging
 import os
 import re
-import urllib.request
 from tempfile import NamedTemporaryFile
+import urllib.request
+import urllib.error
 
 import numpy as np
 import pandas as pd
@@ -196,7 +197,7 @@ class Post:
 
                 with open(temp.name, 'rb') as cropped_file:
                     cropped_image = cropped_file
-        except:
+        except urllib.error.HTTPError:
             return None
 
         return cropped_image

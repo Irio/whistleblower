@@ -4,6 +4,7 @@ from unittest import TestCase, mock
 
 import pandas as pd
 from twitter import TwitterError
+import urllib.error
 
 from whistleblower.targets.twitter import Post, Twitter
 
@@ -154,13 +155,14 @@ class TestPost(TestCase):
         self.assertEqual(url, self.subject.camara_image_url())
 
     @mock.patch('whistleblower.targets.twitter.urllib.request.urlopen')
-    def test_tweet_image(self, urlopen_mock):
-        with open('tests/fixtures/10.pdf', 'rb') as pdf_fixture:
-            mock_response = pdf_fixture
-            mock_response_read = BytesIO(pdf_fixture.read())
-        urlopen_mock.return_value = mock_response_read
-        self.assertIsInstance(
-            self.subject.tweet_image(), BufferedReader)
+    def test_tweet_image_success(self, urlopen_mock):
+        with open('tests/fixtures/10.pdf', 'rb') as mock_response:
+            urlopen_mock.return_value = BytesIO(mock_response.read())
+        self.assertIsInstance(self.subject.tweet_image(), BufferedReader)
 
-        urlopen_mock.side_effect = Exception()
+    @mock.patch('whistleblower.targets.twitter.urllib.request.urlopen')
+    def test_tweet_image_error(self, urlopen_mock):
+        urlopen_mock.side_effect = urllib.error.HTTPError(
+            url='mock_url', code=404, msg='Not Found',
+            hdrs='mock_headers', fp=None)
         self.assertIsNone(self.subject.tweet_image())
