@@ -1,5 +1,7 @@
 FROM continuumio/anaconda3
 
+RUN apt-get install -y libmagickwand-dev
+
 WORKDIR /usr/src/app
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
