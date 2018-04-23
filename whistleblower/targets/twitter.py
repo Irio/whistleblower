@@ -188,17 +188,17 @@ class Post:
         """
         try:
             response = urllib.request.urlopen(self.camara_image_url())
-
-            image_bin = Image(file=response).make_blob('png')
-            numpy_array = np.frombuffer(image_bin, np.uint8)
-
-            with NamedTemporaryFile(suffix='.png') as temp:
-                crop(numpy_array, temp.name)
-
-                with open(temp.name, 'rb') as cropped_file:
-                    cropped_image = cropped_file
         except urllib.error.HTTPError:
             return None
+
+        image_bin = Image(file=response).make_blob('png')
+        numpy_array = np.frombuffer(image_bin, np.uint8)
+
+        with NamedTemporaryFile(suffix='.png') as temp:
+            crop(numpy_array, temp.name)
+
+            with open(temp.name, 'rb') as cropped_file:
+                cropped_image = cropped_file
 
         return cropped_image
 
