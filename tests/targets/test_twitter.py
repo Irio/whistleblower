@@ -1,5 +1,5 @@
 import datetime
-from io import BytesIO, BufferedReader
+from io import BufferedReader
 from unittest import TestCase, mock
 
 import pandas as pd
@@ -154,11 +154,16 @@ class TestPost(TestCase):
         url = 'http://www.camara.gov.br/cota-parlamentar/documentos/publ/10/2015/10.pdf'
         self.assertEqual(url, self.subject.camara_image_url())
 
+    @mock.patch('whistleblower.targets.twitter.os.remove')
     @mock.patch('whistleblower.targets.twitter.urllib.request.urlopen')
-    def test_tweet_image_success(self, urlopen_mock):
-        with open('tests/fixtures/10.pdf', 'rb') as mock_response:
-            urlopen_mock.return_value = BytesIO(mock_response.read())
+    def test_tweet_image_success(self, urlopen_mock, os_remove_mock):
+        mock_object = mock.MagicMock(status_code=200)
+        with open('tests/fixtures/reimbursement_file.txt', 'rb') as mock_response:
+            mock_object.read.return_value = mock_response.read()
+
+        urlopen_mock.return_value = mock_object
         self.assertIsInstance(self.subject.tweet_image(), BufferedReader)
+        os_remove_mock.assert_called_once()
 
     @mock.patch('whistleblower.targets.twitter.urllib.request.urlopen')
     def test_tweet_image_error(self, urlopen_mock):

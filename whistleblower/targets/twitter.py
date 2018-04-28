@@ -1,4 +1,5 @@
 import datetime
+from contextlib import contextmanager
 import logging
 import os
 import re
@@ -182,6 +183,23 @@ class Post:
 
         return url
 
+    @contextmanager
+    def receipt_pdf_as_png(self, pdf_response):
+        image_bin = Image(file=pdf_response).make_blob('png')
+        numpy_array = np.frombuffer(image_bin, np.uint8)
+
+        # write PNG to a temp file
+        temp = NamedTemporaryFile(delete=False, suffix='.png')
+        with open(temp.name, 'wb') as fobj:
+            crop(numpy_array, temp.name)
+
+        # return PNG as a file object
+        with open(temp.name, 'rb') as fobj:
+            yield fobj
+
+        # delete temporary file
+        os.remove(temp.name)
+
     def tweet_image(self):
         """
         Download, crop and open the image for the given reimbursement.
@@ -191,16 +209,8 @@ class Post:
         except urllib.error.HTTPError:
             return None
 
-        image_bin = Image(file=response).make_blob('png')
-        numpy_array = np.frombuffer(image_bin, np.uint8)
-
-        with NamedTemporaryFile(suffix='.png') as temp:
-            crop(numpy_array, temp.name)
-
-            with open(temp.name, 'rb') as cropped_file:
-                cropped_image = cropped_file
-
-        return cropped_image
+        with self.receipt_pdf_as_png(response) as image:
+            return image
 
     def publish(self):
         """
