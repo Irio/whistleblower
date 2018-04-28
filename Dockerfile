@@ -3,7 +3,8 @@ FROM continuumio/anaconda3
 RUN apt-get install -y \
   libmagickwand-dev \
   ghostscript \
-  libgs-dev
+  libgs-dev \
+  imagemagick
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
