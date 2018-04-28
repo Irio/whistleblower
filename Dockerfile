@@ -1,6 +1,9 @@
 FROM continuumio/anaconda3
 
-RUN apt-get install -y libmagickwand-dev
+RUN apt-get install -y \
+  libmagickwand-dev \
+  ghostscript \
+  libgs-dev
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
