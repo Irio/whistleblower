@@ -1,22 +1,22 @@
-FROM python:3.6.3-alpine
+FROM continuumio/anaconda3
 
-RUN apk add --no-cache --virtual build-base \
-  && apk add --no-cache --virtual libxml2-dev \
-  && apk add --no-cache --virtual libxslt-dev \
-  && mkdir -p /usr/include/libxml \
-  && ln -s /usr/include/libxml2/libxml/xmlexports.h /usr/include/libxml/xmlexports.h \
-  && ln -s /usr/include/libxml2/libxml/xmlversion.h /usr/include/libxml/xmlversion.h
-
-# RUN mkdir rosie
-# COPY rosie/config.ini.example ./config.ini
-# COPY rosie/requirements.txt ./rosie
-# RUN pip install -r rosie/requirements.txt
+RUN apt-get update && apt-get install -y \
+  libmagickwand-dev \
+  ghostscript \
+  libgs-dev \
+  imagemagick \
+  build-essential \
+  libxml2-dev \
+  libxslt1-dev \
+  python3-dev \
+  unzip \
+  zlib1g-dev
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
-RUN adduser -S serenata_de_amor
+RUN adduser --system serenata_de_amor
 RUN chown -hR serenata_de_amor .
 USER serenata_de_amor
 

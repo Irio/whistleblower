@@ -1,15 +1,20 @@
 import datetime
+from contextlib import contextmanager
 import logging
 import os
 import re
+from tempfile import NamedTemporaryFile
 import urllib.request
+import urllib.error
 
 import numpy as np
 import pandas as pd
 from pymongo import MongoClient
 import twitter
+from wand.image import Image
 
 from whistleblower.suspicions import Suspicions
+from whistleblower.helpers.crop import crop
 
 ACCESS_TOKEN_KEY = os.environ['TWITTER_ACCESS_TOKEN_KEY']
 ACCESS_TOKEN_SECRET = os.environ['TWITTER_ACCESS_TOKEN_SECRET']
@@ -138,27 +143,82 @@ class Post:
         yield 'text', self.status.text
         yield 'document_id', self.reimbursement['document_id']
 
-    def text(self):
+    def tweet_data(self):
         """
-        Proper tweet message for the given reimbursement.
+        Proper tweet data for the given reimbursement.
         """
         profile = self.reimbursement['twitter_profile']
         if profile:
-            link = 'https://jarbas.serenata.ai/layers/#/documentId/{}'.format(
-                self.reimbursement['document_id'])
-            message = (
-                '🚨Gasto suspeito de Dep. @{} ({}). '
-                'Você pode me ajudar a verificar? '
-                '{} #SerenataDeAmor na @CamaraDeputados'
-            ).format(profile, self.reimbursement['state'], link)
-            return message
+            return self.tweet_text(), self.tweet_image()
         else:
             raise ValueError(
                 'Congressperson does not have a registered Twitter account.')
+
+
+    def tweet_text(self):
+        link = 'https://jarbas.serenata.ai/layers/#/documentId/{}'.format(
+            self.reimbursement['document_id'])
+        message = (
+            '🚨Gasto suspeito de Dep. @{} ({}). '
+            'Você pode me ajudar a verificar? '
+            '{} #SerenataDeAmor na @CamaraDeputados'
+        ).format(
+            self.reimbursement['twitter_profile'],
+            self.reimbursement['state'],
+            link
+        )
+        return message
+
+    def camara_image_url(self):
+        """
+        Proper image url for the given reimbursement.
+        """
+        url = (
+            'http://www.camara.gov.br/cota-parlamentar/documentos/publ/'
+            '{}/{}/{}.pdf'.format(
+                self.reimbursement['applicant_id'],
+                self.reimbursement['year'],
+                self.reimbursement['document_id'])
+        )
+
+        return url
+
+    @contextmanager
+    def receipt_pdf_as_png(self, pdf_response):
+        image_bin = Image(file=pdf_response).make_blob('png')
+        numpy_array = np.frombuffer(image_bin, np.uint8)
+
+        # write PNG to a temp file
+        temp = NamedTemporaryFile(delete=False, suffix='.png')
+        with open(temp.name, 'wb') as fobj:
+            crop(numpy_array, temp.name)
+
+        # return PNG as a file object
+        with open(temp.name, 'rb') as fobj:
+            yield fobj
+
+        # delete temporary file
+        os.remove(temp.name)
+
+    def tweet_image(self):
+        """
+        Download, crop and open the image for the given reimbursement.
+        """
+        try:
+            response = urllib.request.urlopen(self.camara_image_url())
+        except urllib.error.HTTPError:
+            return None
+
+        with self.receipt_pdf_as_png(response) as image:
+            return image
 
     def publish(self):
         """
         Post the update to Twitter's timeline.
         """
-        self.status = self.api.PostUpdate(self.text())
+        text, reimbursement_image = self.tweet_data()
+
+        self.status = self.api.PostUpdate(
+            status=text,
+            media=reimbursement_image)
         self.database.posts.insert_one(dict(self))

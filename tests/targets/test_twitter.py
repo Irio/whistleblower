@@ -1,8 +1,10 @@
 import datetime
+from io import BufferedReader
 from unittest import TestCase, mock
 
 import pandas as pd
 from twitter import TwitterError
+import urllib.error
 
 from whistleblower.targets.twitter import Post, Twitter
 
@@ -108,6 +110,8 @@ class TestPost(TestCase):
         self.reimbursement = {
             'congressperson_name': 'Eduardo Cunha',
             'document_id': 10,
+            'applicant_id': 10,
+            'year': 2015,
             'state': 'RJ',
             'twitter_profile': 'DepEduardoCunha',
         }
@@ -117,19 +121,53 @@ class TestPost(TestCase):
 
     def test_publish(self):
         self.subject.publish()
-        self.api.PostUpdate.assert_called_once_with(self.subject.text())
+        text, reimbursement_image = self.subject.tweet_data()
+        self.api.PostUpdate.assert_called_once_with(
+            media=reimbursement_image, status=text)
         dict_representation = dict(self.subject)
         self.database.posts.insert_one.assert_called_once_with(
             dict_representation)
 
-    def test_text(self):
+    def test_tweet_data(self):
         message = (
             '🚨Gasto suspeito de Dep. @DepEduardoCunha (RJ). '
             'Você pode me ajudar a verificar? '
             'https://jarbas.serenata.ai/layers/#/documentId/10 '
             '#SerenataDeAmor na @CamaraDeputados'
         )
-        self.assertEqual(message, self.subject.text())
+        self.assertEqual(
+            (message, None), self.subject.tweet_data())
         self.reimbursement['twitter_profile'] = None
         with self.assertRaises(ValueError):
-            self.subject.text()
+            self.subject.tweet_data()
+
+    def test_tweet_text(self):
+        message = (
+            '🚨Gasto suspeito de Dep. @DepEduardoCunha (RJ). '
+            'Você pode me ajudar a verificar? '
+            'https://jarbas.serenata.ai/layers/#/documentId/10 '
+            '#SerenataDeAmor na @CamaraDeputados'
+        )
+        self.assertEqual(message, self.subject.tweet_text())
+
+    def test_camara_image_url(self):
+        url = 'http://www.camara.gov.br/cota-parlamentar/documentos/publ/10/2015/10.pdf'
+        self.assertEqual(url, self.subject.camara_image_url())
+
+    @mock.patch('whistleblower.targets.twitter.os.remove')
+    @mock.patch('whistleblower.targets.twitter.urllib.request.urlopen')
+    def test_tweet_image_success(self, urlopen_mock, os_remove_mock):
+        mock_object = mock.MagicMock(status_code=200)
+        with open('tests/fixtures/reimbursement_file.txt', 'rb') as mock_response:
+            mock_object.read.return_value = mock_response.read()
+
+        urlopen_mock.return_value = mock_object
+        self.assertIsInstance(self.subject.tweet_image(), BufferedReader)
+        os_remove_mock.assert_called_once()
+
+    @mock.patch('whistleblower.targets.twitter.urllib.request.urlopen')
+    def test_tweet_image_error(self, urlopen_mock):
+        urlopen_mock.side_effect = urllib.error.HTTPError(
+            url='mock_url', code=404, msg='Not Found',
+            hdrs='mock_headers', fp=None)
+        self.assertIsNone(self.subject.tweet_image())
