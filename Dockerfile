@@ -4,7 +4,13 @@ RUN apt-get update && apt-get install -y \
   libmagickwand-dev \
   ghostscript \
   libgs-dev \
-  imagemagick
+  imagemagick \
+  build-essential \
+  libxml2-dev \
+  libxslt1-dev \
+  python3-dev \
+  unzip \
+  zlib1g-dev
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
